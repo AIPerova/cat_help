@@ -11,30 +11,30 @@ CRUDType = TypeVar('CRUDType', bound=CRUDBase)
 
 
 def close_project(obj: ModelType) -> None:
-    """Закрытие сбора, добавление даты закрытия."""
+    """Закрытие сбора/доната, добавление даты закрытия."""
 
     obj.fully_invested = True
     obj.close_date = datetime.now()
 
 
 async def donate(
-    project: ModelType, all_donation: CRUDType, session: AsyncSession
+    obj_1: ModelType, obj_2: CRUDType, session: AsyncSession
 ) -> ModelType:
     """Инвестирование."""
 
-    donations = await all_donation.get_multi_open(session)
-    for donation in donations:
-        money_for_project = project.full_amount - project.invested_amount
-        money_for_donate = donation.full_amount - donation.invested_amount
+    all_obj = await obj_2.get_multi_open(session)
+    for obj in all_obj:
+        money_for_project = obj_1.full_amount - obj_1.invested_amount
+        money_for_donate = obj.full_amount - obj.invested_amount
         to_donate = min(money_for_project, money_for_donate)
-        donation.invested_amount += to_donate
-        project.invested_amount += to_donate
-        if donation.full_amount == donation.invested_amount:
-            close_project(donation)
-        if project.full_amount == project.invested_amount:
-            close_project(project)
+        obj.invested_amount += to_donate
+        obj_1.invested_amount += to_donate
+        if obj.full_amount == obj.invested_amount:
+            close_project(obj)
+        if obj_1.full_amount == obj_1.invested_amount:
+            close_project(obj_1)
             break
-    session.add_all((*donations, project))
+    session.add_all((*all_obj, obj_1))
     await session.commit()
-    await session.refresh(project)
-    return project
+    await session.refresh(obj_1)
+    return obj_1
