@@ -35,9 +35,7 @@ async def get_all_projects(
 ):
     """Возвращение списка проектов."""
 
-    projects = await charity_crud.get_multi(session)
-
-    return projects
+    return await charity_crud.get_multi(session)
 
 
 @router.post(
@@ -106,6 +104,4 @@ async def remove_project(
         session,
     )
     await check_donations_in_project(project_id, session)
-    project = await charity_crud.remove(project, session)
-
-    return project
+    return await charity_crud.remove(project, session)

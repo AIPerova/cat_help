@@ -18,23 +18,23 @@ def close_project(obj: ModelType) -> None:
 
 
 async def donate(
-    obj_1: ModelType, obj_2: CRUDType, session: AsyncSession
+    from_invest: ModelType, to_invest: CRUDType, session: AsyncSession
 ) -> ModelType:
     """Инвестирование."""
 
-    all_obj = await obj_2.get_multi_open(session)
+    all_obj = await to_invest.get_multi_open(session)
     for obj in all_obj:
-        money_for_project = obj_1.full_amount - obj_1.invested_amount
+        money_for_project = from_invest.full_amount - from_invest.invested_amount
         money_for_donate = obj.full_amount - obj.invested_amount
         to_donate = min(money_for_project, money_for_donate)
         obj.invested_amount += to_donate
-        obj_1.invested_amount += to_donate
+        from_invest.invested_amount += to_donate
         if obj.full_amount == obj.invested_amount:
             close_project(obj)
-        if obj_1.full_amount == obj_1.invested_amount:
-            close_project(obj_1)
+        if from_invest.full_amount == from_invest.invested_amount:
+            close_project(from_invest)
             break
-    session.add_all((*all_obj, obj_1))
+    session.add_all((*all_obj, from_invest))
     await session.commit()
-    await session.refresh(obj_1)
-    return obj_1
+    await session.refresh(from_invest)
+    return from_invest
